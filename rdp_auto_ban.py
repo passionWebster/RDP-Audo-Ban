@@ -19,6 +19,7 @@ Requires: Administrator privileges, pywin32, pyyaml.
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 import threading
 import time
@@ -316,6 +317,38 @@ def _run_console() -> None:
         print("已退出。")
 
 
+def _configure_service() -> None:
+    """Set the service to auto-start and configure recovery actions.
+
+    Recovery policy: restart the service after 60 s on failure, up to
+    3 times in a rolling 86400 s (1 day) window.
+
+    Uses ``sc`` (Service Control) CLI, which is built into every Windows
+    installation — simpler and more reliable than pywin32 structs.
+    """
+    svc_name = RdpAutoBanService._svc_name_
+
+    # 1. Auto-start on boot.
+    subprocess.run(
+        ["sc", "config", svc_name, "start=auto"],
+        check=True,
+        capture_output=True,
+        encoding="utf-8", errors="replace",
+        timeout=15,
+    )
+
+    # 2. Restart on failure: 3 retries, 60 s delay, reset counter after 1 day.
+    subprocess.run(
+        ["sc", "failure", svc_name,
+         "reset=86400",
+         "actions=restart/60000/restart/60000/restart/60000"],
+        check=True,
+        capture_output=True,
+        encoding="utf-8", errors="replace",
+        timeout=15,
+    )
+
+
 def main() -> None:
     """Parse command line and dispatch to console or service mode."""
     if sys.platform != "win32":
@@ -327,6 +360,12 @@ def main() -> None:
         # Delegate to win32serviceutil (handles install / start / stop /
         # remove / debug).
         win32serviceutil.HandleCommandLine(RdpAutoBanService)
+
+        # When installing, also configure auto-start + recovery.
+        if "install" in sys.argv:
+            print("[配置] 设置自启动 + 异常恢复…")
+            _configure_service()
+            print("[配置] 完成 — 服务将开机自启，异常退出后 60 秒自动重启")
 
 
 if __name__ == "__main__":
