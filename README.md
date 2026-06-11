@@ -31,13 +31,17 @@ cd RDP-Auto-Ban
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
 
-# 3. 修改配置（按需调整阈值、白名单等）
+# 3. 下载 NSSM（服务包装器，约 400KB）
+curl -L -o nssm.zip https://nssm.cc/release/nssm-2.24.zip
+# 解压 nssm-2.24.zip，把 win64\nssm.exe 放到项目根目录
+
+# 4. 修改配置（按需调整阈值、白名单等）
 notepad config.yaml
 
-# 4. 前台测试运行（Ctrl+C 停止）
+# 5. 前台测试运行（Ctrl+C 停止）
 .venv\Scripts\python rdp_auto_ban.py --console
 
-# 5. 确认无误后安装为 Windows 服务（以管理员运行）
+# 6. 确认无误后安装为 Windows 服务（以管理员运行）
 .\install_service.bat
 ```
 
@@ -115,6 +119,9 @@ src/
 
 ## 服务管理
 
+本工具使用 [NSSM](https://nssm.cc/)（Non-Sucking Service Manager）将控制台程序包装为 Windows 服务，
+避免 pywin32 的 `pythonservice.exe` DLL 兼容性问题。
+
 ```bash
 # 安装并启动服务
 .\install_service.bat
@@ -122,14 +129,14 @@ src/
 # 卸载服务
 .\uninstall_service.bat
 
-# 手动控制
-.venv\Scripts\python rdp_auto_ban.py install   # 注册服务
-.venv\Scripts\python rdp_auto_ban.py start     # 启动
-.venv\Scripts\python rdp_auto_ban.py stop      # 停止
-.venv\Scripts\python rdp_auto_ban.py remove    # 卸载
-.venv\Scripts\python rdp_auto_ban.py debug     # 调试模式
+# 手动控制（通过 NSSM）
+nssm start RDP-Auto-Ban          # 启动
+nssm stop RDP-Auto-Ban           # 停止
+nssm restart RDP-Auto-Ban        # 重启
+nssm status RDP-Auto-Ban         # 查看状态
+nssm edit RDP-Auto-Ban           # 图形界面修改配置
 
-# 查看状态
+# 查看 Windows 服务
 services.msc  → 找到 "RDP Auto Ban Service"
 ```
 
