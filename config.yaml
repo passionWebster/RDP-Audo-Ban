@@ -1,0 +1,50 @@
+# RDP Auto-Ban Configuration
+# ============================
+# 修改配置后需重启服务生效
+
+# ---------- 监控配置 ----------
+monitor:
+  # 失败次数阈值：同一IP在时间窗口内失败达到此次数则封禁
+  failure_threshold: 3
+  # 统计时间窗口（分钟）
+  time_window_minutes: 5
+  # 封禁时长（小时），设为 0 表示永久封禁（手动解封）
+  ban_duration_hours: 24
+  # 监控的登录类型（Windows LogonType）
+  #   3  = Network (NTLM/SMB 暴力破解)
+  #   10 = RemoteInteractive (RDP 远程桌面)
+  # 可保留一种或同时监控多种
+  monitored_logon_types: [3, 10]
+
+# ---------- 防火墙规则 ----------
+firewall:
+  # 防火墙规则名前缀，用于识别本工具创建的规则
+  rule_name_prefix: "RDP-Auto-Ban"
+  # RDP 监听端口（默认 3389，如已修改请同步更新）
+  rdp_port: 3389
+
+# ---------- IP 白名单 ----------
+whitelist:
+  # 白名单中的 IP 或 CIDR 网段不会被封禁
+  # 建议至少保留本地网络地址段
+  ip_list:
+    - "127.0.0.1"
+    - "192.168.0.0/16"
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+
+# ---------- 日志配置 ----------
+logging:
+  # 日志级别：DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+  # 日志目录（相对于项目根目录）
+  log_dir: "logs"
+  # 单个日志文件最大大小（字节），默认 10MB
+  max_bytes: 10485760
+  # 保留的历史日志文件数量
+  backup_count: 5
+
+# ---------- 持久化 ----------
+persistence:
+  # 封禁状态持久化文件（相对于项目根目录）
+  state_file: "banned_ips.json"

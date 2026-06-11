@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+
+# Logs
+logs/
+*.log
+
+# Persisted ban state
+banned_ips.json
+banned_ips.json.tmp
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Planning artifacts
+findings.md
+progress.md
+task_plan.md
+
+# OS
+Thumbs.db
+Desktop.ini
