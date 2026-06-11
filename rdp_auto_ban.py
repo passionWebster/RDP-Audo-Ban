@@ -263,16 +263,20 @@ if sys.platform == "win32":
 
         def SvcDoRun(self) -> None:
             """Service entry point — blocks until the service is stopped."""
-            servicemanager.LogMsg(
-                servicemanager.EVENTLOG_INFORMATION_TYPE,
-                servicemanager.PYS_SERVICE_STARTED,
-                (self._svc_name_, ""),
-            )
+            self.ReportServiceStatus(win32service.SERVICE_START_PENDING)
             try:
                 self._app = RdpAutoBan(
                     os.path.join(_PROJECT_DIR, DEFAULT_CONFIG)
                 )
                 self._app.start()
+                # Tell the SCM we are running — without this the SCM
+                # kills the service with error 1053 after ~30 s.
+                self.ReportServiceStatus(win32service.SERVICE_RUNNING)
+                servicemanager.LogMsg(
+                    servicemanager.EVENTLOG_INFORMATION_TYPE,
+                    servicemanager.PYS_SERVICE_STARTED,
+                    (self._svc_name_, ""),
+                )
                 # Wait indefinitely until SvcStop signals us.
                 win32event.WaitForSingleObject(self._stop_event, win32event.INFINITE)
             except Exception:
